@@ -1,0 +1,170 @@
+ZION’s Confidential Document/Record
+
+Pages / … / ACR | SBV Kiểm tra công nghệ thông tin 5/2026 - Publish
+
+Tiêu chí đánh giá rủi ro gian lận liên quan đến giao dịch qua Ví điện tử
+Zalopay - Publish
+Created by Như. Tạ Ngọc, last modified on May 05, 2026
+
+Reference: <TIÊU CHÍ ĐÁNH GIÁ RỦI RO GIAN LẬN LIÊN QUAN ĐẾN GIAO DỊCH QUA VÍ ĐIỆN TỬ ZALOPAY>
+Revamp 2026 - Publish <Tiêu chí đánh giá rủi ro gian lận liên quan đến giao dịch qua Ví điện tử Zalopay - Publish>
+
+1. GIỚI THIỆU
+1.1. Mục đích
+Tài liệu này được xây dựng nhằm:
+Đảm bảo việc đánh giá và xử lý các giao dịch có dấu hiệu gian lận trên hệ thống Zalopay được thực hiện một cách thống nhất, nhất quán và tuân thủ
+các quy định hiện hành của Ngân hàng Nhà nước.
+Thiết lập bộ tiêu chí đánh giá rủi ro dựa trên dữ liệu và hành vi thực tế, hỗ trợ phát hiện sớm các dấu hiệu gian lận, đồng thời tối ưu hóa hiệu quả vận
+hành và trải nghiệm người dùng.
+Làm cơ sở hướng dẫn cho các đơn vị liên quan trong việc triển khai, vận hành và giám sát hoạt động quản lý rủi ro giao dịch.
+
+1.2. Phạm vi và đối tượng áp dụng
+Tài liệu áp dụng cho toàn bộ các giao dịch tài chính phát sinh trên hệ thống ví điện tử Zalopay, bao gồm nhưng không giới hạn: Chuyển tiền
+(P2P/IBFT), thanh toán dịch vụ, thanh toán merchant, nạp tiền, rút tiền và các giao dịch liên quan đến thẻ/tài khoản ngân hàng.
+Tài liệu này không bao gồm các giao dịch thuộc phạm vi phòng chống rửa tiền và tài trợ khủng bố.
+Đối tượng áp dụng bao gồm toàn bộ nhân sự thuộc Khối Quản lý Rủi ro và các đơn vị liên quan đến vận hành, xử lý giao dịch và hỗ trợ khách hàng.
+
+2. NGUYÊN TẮC ĐÁNH GIÁ RỦI RO GIAO DỊCH
+2.1. Nguyên tắc chung
+Việc đánh giá rủi ro giao dịch được thực hiện theo nguyên tắc tiếp cận đa chiều, dựa trên tổng hợp các yếu tố liên quan đến người dùng, thiết bị, hành vi
+giao dịch và các mối liên kết liên quan nhằm đảm bảo nhận diện đầy đủ các dấu hiệu gian lận.
+Quá trình đánh giá được triển khai xuyên suốt vòng đời giao dịch và theo thơi gian thực, bao gồm các giai đoạn trước giao dịch, trong giao dịch và sau giao
+dịch nhằm phục vụ cho việc đưa ra quyết định xử lý ngay tại thời điểm giao dịch, đồng thời đảm bảo khả năng truy vết và giải trình khi cần thiết. Kết quả
+đánh giá rủi ro được sử dụng làm cơ sở để đưa ra các quyết định xử lý tương ứng, bao gồm chấp nhận giao dịch, yêu cầu xác thực bổ sung hoặc từ chối
+giao dịch.
+Mức độ rủi ro của giao dịch không được xác định dựa trên một tiêu chí đơn lẻ mà là kết quả tổng hợp của nhiều tín hiệu rủi ro, có xem xét đến bối cảnh lịch
+sử và hành vi của người dùng.
+
+2.2. Nguyên tắc phân loại và xử lý theo mức độ rủi ro
+Dựa trên kết quả đánh giá, giao dịch được phân loại theo các mức độ rủi ro và tương ứng với từng mức độ rủi ro và áp dụng các biện pháp xử lý như sau:
+Nguyên tắc phân loại
+
+Nguyên tắc xử lý
+
+Rủi ro thấp
+(Low Risk)
+
+Giao dịch phù hợp với hành vi thông thường của
+người dùng, không phát hiện dấu hiệu bất thường
+đáng kể
+
+Giao dịch được chấp nhận và thực hiện bình
+thường, không phát sinh thêm bước xác thực.
+
+Rủi ro trung
+bình (Medium
+Risk)
+
+Giao dịch có một số dấu hiệu bất thường nhưng
+chưa đủ cơ sở xác định gian lận rõ ràng, cần áp
+dụng biện pháp xác thực bổ sung.
+
+Áp dụng các biện pháp xác thực tăng cường
+như SMS/ZMS OTP, xác thực qua ứng dụng
+(Smart OTP in-app authentication), xác thực
+sinh trắc học (face authentication) hoặc các
+hình thức xác thực khác nhằm đảm bảo tính
+hợp lệ của giao dịch.
+
+Rủi ro cao
+(High Risk)
+
+Giao dịch có nhiều dấu hiệu bất thường hoặc liên
+quan đến các yếu tố đã được xác định có rủi ro
+gian lận, cần hạn chế hoặc từ chối thực hiện.
+
+Giao dịch có thể bị từ chối thực hiện hoặc yêu
+cầu xác minh bổ sung; đồng thời được ghi
+nhận để theo dõi và phục vụ công tác điều tra
+khi cần thiết.
+Trong các trường hợp rủi ro rất cao hoặc có
+dấu hiệu gian lận rõ ràng, giao dịch sẽ bị chặn
+
+Nguyên tắc phân loại
+
+Nguyên tắc xử lý
+ngay lập tức và tài khoản liên quan có thể bị áp
+dụng các biện pháp kiểm soát bổ sung như
+tạm khóa, hạn chế chức năng,...
+
+3. NGUỒN THÔNG TIN PHỤC VỤ ĐÁNH GIÁ RỦI RO
+Thông tin phục vụ công tác đánh giá rủi ro được thu thập từ các nguồn sau:
+Thông báo, cảnh báo từ cơ quan nhà nước, ngân hàng thanh toán, ngân hàng phát hành, Napas và các tổ chức thẻ quốc tế (Visa/MasterCard/...).
+Yêu cầu tra soát, khiếu nại từ khách hàng thông qua các kênh chính thức như tổng đài, email hoặc ứng dụng CSKH.
+Dữ liệu nội bộ từ hệ thống Zalopay, bao gồm lịch sử giao dịch, thông tin thiết bị, hành vi người dùng và kết quả phân tích từ các hệ thống giám sát rủi
+ro hoặc Bộ phận QLRR trực tiếp phân tích từ dữ liệu và các công cụ giám khác hoặc các nghiệp vụ khác.
+
+4. TIÊU CHÍ ĐÁNH GIÁ RỦI RO GIAO DỊCH
+4.1. Giai đoạn trước giao dịch (Pre-Transaction)
+Trong giai đoạn trước giao dịch, hệ thống thực hiện đánh giá rủi ro dựa trên thông tin người dùng và môi trường truy cập nhằm phát hiện sớm các dấu hiệu
+bất thường. Mục tiêu là ngăn chặn các hành vi gian lận ngay từ đầu, trước khi giao dịch được khởi tạo, đồng thời đảm bảo chỉ các tài khoản hợp lệ và an
+toàn mới được phép thực hiện giao dịch.
+Các tiêu chí đánh giá rủi ro bao gồm:
+Danh sách rủi ro (Blacklist): Giao dịch có liên quan đến các yếu tố thuộc danh sách rủi ro đã được xác định và thiết lập trước, bao gồm nhưng
+không giới hạn:
+Người dùng đã được xác nhận có hành vi gian lận;
+Thẻ thanh toán có BIN thuộc danh sách rủi ro cao;
+Giao dịch phát sinh trên các đơn vị chấp nhận thanh toán (ĐVCNTT) thuộc nhóm có tỷ lệ gian lận cao.
+Rủi ro liên quan đến hành vi bất thường: Người dùng có hành vi đăng nhập hoặc thao tác khác biệt đáng kể so với lịch sử sử dụng, bao gồm
+nhưng không giới hạn:
+Đăng nhập hoặc khởi tạo giao dịch từ thiết bị mới hoặc thiết bị chưa từng được ghi nhận trong lịch sử sử dụng;
+Phát sinh nhiều giao dịch lặp lại trong khoảng thời gian ngắn (ví dụ: >5 giao dịch trong vòng 1 phút), bao gồm các giao dịch thất bại và/hoặc
+các giao dịch có cùng giá trị. Các giao dịch lặp lại có thể liên quan các mục đích dò số dư, thông tin thanh toán,...
+Rủi ro về tần suất và giá trị giao dịch (Velocity):
+Số lượng giao dịch vượt ngưỡng trong một khoảng thời gian xác định;
+Tổng giá trị giao dịch tích lũy vượt ngưỡng theo ngày hoặc theo giờ;
+Hành vi chia nhỏ giao dịch nhằm né tránh các cơ chế kiểm soát.
+Rủi ro liên quan đến địa chỉ IP và vị trí truy cập: Người dùng thực hiện giao dịch từ các địa chỉ IP hoặc khu vực có dấu hiệu bất thường, bao gồm
+nhưng không giới hạn:
+Địa chỉ IP thuộc các quốc gia hoặc vùng lãnh thổ có mức độ rủi ro cao;
+Địa chỉ IP phát sinh số lượng lớn giao dịch trong thời gian ngắn không phù hợp với lịch sử hành vi của người dùng.
+Rủi ro liên quan đến tài khoản:
+Tài khoản mới được tạo trong thời gian ngắn nhưng phát sinh giao dịch có giá trị cao;
+Tài khoản không hoạt động/phát sinh giao dịch trong khoảng thời gian dài (ví dụ: >= 180 ngày) nhưng đột ngột phát sinh giao dịch có giá trị lớn
+và/hoặc tần suất cao;
+Tài khoản có lịch sử hoạt động thấp (ví dụ: số lượng và giá trị giao dịch trung bình thấp trong các kỳ trước) nhưng phát sinh giao dịch vượt
+đáng kể so với hành vi thông thường;
+Bên cạnh đó, hệ thống áp dụng các cơ chế kiểm soát nhằm giảm thiểu rủi ro:
+Thực hiện quy trình định danh và xác thực khách hàng (KYC) tại thời điểm đăng ký tài khoản nhằm đảm bảo tính hợp lệ của người dùng.
+Áp dụng cơ chế xác thực đa yếu tố (Multi-Factor Authentication, MFA) tại các điểm truy cập và khởi tạo giao dịch nhằm tăng cường xác minh chính
+chủ và hạn chế truy cập trái phép.
+
+4.2. Giai đoạn trong giao dịch (In-Transaction)
+Trong quá trình thực hiện giao dịch, hệ thống tiếp tục đánh giá hành vi giao dịch theo thời gian thực (real-time).
+Giám sát giao dịch real-time thông qua hệ thống đánh giá rủi ro (Risk Engine) và các cơ chế kiểm soát đa tầng (Rule-based detection), bao gồm việc
+tích hợp các công nghệ phân tích rủi ro từ việc phân tích mối liên hệ giữa người dùng/thiết bị/giao dịch, nhận diện hành vi bất thường so với thói quen
+của người dùng và phân loại điểm mức độ rủi ro để quyết định có cho phép giao dịch hay không.
+Các dấu hiệu rủi ro bao gồm tần suất giao dịch tăng đột biến trong thời gian ngắn, thực hiện giao dịch vào các khung giờ có rủi ro cao, hoặc
+giá trị giao dịch vượt mức thông thường so với lịch sử của người dùng.
+Giao dịch có liên quan đến các tài khoản nhận tiền nằm trong danh sách nghi ngờ hoặc có liên kết với các mạng lưới gian lận cũng được đánh
+giá là có rủi ro cao.
+Ngoài ra, các giao dịch liên quan đến các loại hàng hóa/dịch vụ có khả năng chuyển đổi thành tiền mặt cao, như thẻ cào, thẻ game hoặc nạp
+điện thoại, cũng được đưa vào diện giám sát.
+Các tín hiệu từ hệ thống xử lý giao dịch, bao gồm việc bị từ chối bởi ngân hàng hoặc nhận các mã lỗi bất thường, cũng là cơ sở để đánh giá
+rủi ro.'
+Giao dịch có dấu hiệu rủi ro cao sẽ bị chặn, yêu cầu xác minh bổ sung hoặc hạn chế trong thời gian nhất định
+Áp dụng AI & Machine Learning Models để dự đoán nguy cơ từ dữ liệu giao dịch và hành vi user, nhận diện pattern mới chưa có trong rule.
+
+4.3. Giai đoạn sau giao dịch (Post-Transaction)
+Sau khi giao dịch hoàn tất, các thông tin phát sinh tiếp tục được sử dụng để đánh giá và xác nhận mức độ rủi ro.
+Theo dõi hành vi người dùng/thiết bị/giao dịch liên tục, phát hiện các dấu hiệu bất thường có thể xuất hiện sau khi giao dịch
+Các giao dịch bị khiếu nại bởi khách hàng, hoặc được thông báo bởi ngân hàng, tổ chức thẻ hoặc cơ quan nhà nước là gian lận, sẽ được
+phân loại là giao dịch rủi ro cao.
+Dữ liệu từ các hệ thống tra soát, bao gồm báo cáo gian lận và tranh chấp, được sử dụng để cập nhật và hiệu chỉnh các tiêu chí đánh giá.
+Các giao dịch được xác nhận hợp lệ bởi các bên liên quan hoặc được khách hàng xác nhận thực hiện sẽ được phân loại là không rủi ro.
+Liên tục rà soát gaps, bổ sung rule/model mới dựa trên fraud case thực tế → feedback loop để hệ thống ngày càng chính xác.
+
+5. TỔ CHỨC THỰC HIỆN
+Phòng Quản lý Rủi ro chịu trách nhiệm xây dựng, cập nhật và giám sát việc thực hiện các tiêu chí đánh giá rủi ro.
+Các đơn vị liên quan có trách nhiệm phối hợp cung cấp dữ liệu, triển khai các biện pháp kiểm soát và xử lý các trường hợp phát sinh theo quy định.
+Các tiêu chí đánh giá rủi ro được rà soát và cập nhật định kỳ hoặc khi phát sinh các xu hướng gian lận mới nhằm đảm bảo hiệu quả kiểm soát.
+
+6. KIỂM SOÁT, GIÁM SÁT VÀ CẢI TIẾN
+Hiệu quả của hệ thống đánh giá rủi ro được theo dõi thông qua các chỉ số như tỷ lệ gian lận, tỷ lệ giao dịch bị từ chối, tỷ lệ xác thực bổ sung và các
+chỉ số vận hành khác.
+Dựa trên kết quả theo dõi, Phòng Quản lý Rủi ro thực hiện điều chỉnh tiêu chí và quy trình nhằm nâng cao hiệu quả kiểm soát, đồng thời đảm bảo
+không gây ảnh hưởng tiêu cực đến trải nghiệm người dùng.
+
+No labels
+
+

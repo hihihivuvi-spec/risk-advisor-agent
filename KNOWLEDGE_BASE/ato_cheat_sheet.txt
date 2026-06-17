@@ -1,0 +1,1465 @@
+ZION’s Confidential Document/Record
+
+ACR | NhuTN - Cheat sheet
+Created by Như. Tạ Ngọc, last modified on Jun 10, 2026
+
+1 ATO metrics
+1.1 1. Key metrics (KPI)
+1.2 2. Rule performance
+1.3.1 Metrics
+1.3.2 Data set
+2 Post-mortem (POM)
+3 Product Code
+4 Payment Platform - Product Design
+4.1 AppIDs
+4.2 TransType
+4.3 zps system and sofaction
+4.4 Pmc ID
+4.5 Refund
+4.6 Login
+5 Risk - PE mapping
+5.1 Mapping (Error code)
+5.2 Authen type
+6 Trusted device
+Objective: Record everything in the Zalopay world that can support senselessness of NhuTN
+
+ATO metrics
+1. Key metrics (KPI)
+Key Metric
+
+Description
+
+Note
+
+ATO Ratio
+
+total loss / total fund out
+
+Tỷ lệ thiệt hại do ATO trên tổng giá trị giao dịch
+
+min
+
+False Positive Rate
+
+total bắt sai / total user
+
+Tỷ lệ normal user bị bắt nhầm là ATO (impact user)
+
+min
+
+FPR ATO
+
+total not ATO rejected / (total trans - total ATO trans)
+
+Tỷ lệ từ chối sai những giao dịch không phải ATO
+
+min
+
+FPR Blacklist
+
+total not blacklist reject / (total trans checked risk - total blacklist trans)
+
+Tỷ lệ từ chối sai với giao dịch không thuộc blacklist
+
+bắt sai blacklist
+
+Recall (trans/user/amt)
+
+total ATO rejected / total ATO
+
+Tỷ lệ phát hiện đúng ATO (bắt đủ)
+
+max
+
+Precision (trans/user/amt)
+
+total ATO rejected / total rejected
+
+Tỷ lệ từ chối đúng trong tất cả giao dịch bị từ chối
+(bắt đúng)
+
+max → hệ thống chính xác
+
+Rejection Rate (trans/user)
+
+total rejected / total checked risk
+
+Tỷ lệ bị từ chối trong số giao dịch đã check risk
+(impact toàn sàn)
+
+min → balance rejection để tránh false
+positive
+
+2. Rule performance
+
+Metrics
+
+Total loss
+(total ATO amount)
+
+Metrics
+
+Description
+
+?
+
+df_loss_amount = (
+df_post_mortem_blacklist_ato.where(f.col("transStatus") == 1)
+.where(~(f.col("appID").isin(list_appid_not_payment)) |
+(f.col("appID").isin(241, 450)))
+.withColumn("reqDate", f.substring(f.col("reqDate"), 0, 10))
+.select("reqDate", "transID", "userChargeAmount")
+.distinct()
+.groupBy("reqDate")
+.agg(f.sum("userChargeAmount").alias("lossAmount"))
+)
+
+The amount users lose when they've been attacked
+
+df_loss_amount = (
+df_post_mortem_blacklist_ato.where(f.col("transStatus") == 1)
+.join(df_appid_not_payment, on="appID", how="leftanti")
+.unionByName(
+df_post_mortem_blacklist_ato.where(
+(f.col("transStatus") == 1) & (f.col("appID").isin([241, 450]))
+)
+)
+.withColumn("reqDate", f.substring(f.col("reqDate"), 0, 10))
+.select("reqDate", "transID", "userChargeAmount")
+.distinct()
+.groupBy("reqDate")
+.agg(f.sum("userChargeAmount").alias("lossAmount"))
+)
+
+Total paying amt + total transfer money AND label == 'ATO'
+Label == "ATO" & transStatus = 1
+- appID = 241 OR 450 (payment)
+- app_type = Payment (=exclude appID not payment)
+
+df_loss_amount.show(5)
+
+Total fund out
+
+total fundout = total payment + total transfer
+payment: app_type = Payment
+transfer: (transStatus=1) AND (appID in (241, 450))
+
+Khi xuất hiện appID mới bị ATO sẽ backfill data lại từ đầu
+→ Verify lại app withdraw có phải ATO hay ko?
+
+Total ATO trans
+
+Total transactions labeled ATO
+
+Total ATO user
+
+Total users have transactions labeled ATO
+
+Metrics
+
+Description
+
+?
+
+Total CS trans
+
+The total number of ATO transactions that users reported to
+CS
+
+Total CS user
+
+The total number of ATO users that they reported to CS
+
+Loss per case
+Precision blacklist
+
+The financial loss incurred per case
+Total blacklist trans hit rules/ total trans hit rules
+Total blacklist trans rejected / total trans rejected (blacklist: ATO,
+PA, CF,..)
+
+total_trans
+
+sum trans của với điều kiện trans_group = 'Payment'
+
+Số lượng transaction mỗi ngày
+
+total_trans_amount
+(TPV)
+
+sum volume của với điều kiện trans_group = 'Payment'
+
+Tổng giá trị transaction amount (TPV) mỗi ngày
+
+dpu
+
+count distinct userID của với điều kiện trans_group = 'Payment'
+
+Số lượng paying user mỗi ngày (Daily Paying User)
+
+Coverage
+
+Total ATO trans rejected / total ATO trans
+
+% CS coverage
+
+total trans (source == 'cs' AND transStatus == -348) / total CS
+trans
+
+Rejection rate
+
+total trans rejected / total TPE trans
+
+False positive
+
+total normal trans rejected / total normal trans
+
+Data set
+Data
+
+Data path
+
+Description
+
+Note
+
+TPE
+
+df_tpe = (ef.extract_dataframe_by_time_range("risk.rda.clean_tpe_log", start_date,
+end_date))
+
+risk.rda.clean_tpe_log
+
+Với WLR thì transtype =[1,4]
+
+Log data tất cả giao dịch xảy ra trên sàn
+
+df_tpe.where(f.col("transStatus") == 1)
+df_tpe.cache().count() → Count SL giao dịch
+AppID
+
+df_appid = (ef.extract_dataframe("zds.mapping.map_appid"))
+
+zds.mapping.map_appid
+
+df_appName = df_appid.select(
+col("appid").alias("appID"),
+col("appname").alias("appName"),
+col("report_cat").alias("reportCat"))
+AppID not payment
+
+list_appid_not_payment = (
+df_appid.where(col("app_type") == "Not Payment")
+.select(f.col("appid").alias("appID"))
+.distinct()
+).show(5)
+
+merchant_information (6).xlsx
+(sharepoint.com)
+
+risk.rda.promotion_abuse.list_map_appid_backup
+
+map_appid = ef.extract_dataframe("risk.rda.promotion_abuse.list_map_appid_backup")
+list_appid_not_payment = (
+map_appid.where(f.col("app_type") == "Not Payment")
+.select(f.col("appid").alias("appID"))
+.distinct())
+ATO PoM
+
+risk.rda.wallet.post_mortem_ato.post_mortem_ato_blacklist
+
+TPE translog
+
+risk.rda.clean_tpe_log,PROD
+payment = exclude appid not payment
+transfer = appid 241, 450
+
+TPE Payment
+
+df_tpe_payment = df_tpe.join(appid_not_payment, how="leftanti", on="appID")
+
+Log data tất cả giao dịch xảy ra trên sàn mà appID = Payment
+
+Results Payment
+
+df_result_payment = (df_tpe_payment
+.withColumn("req_date", f.substring(f.col("reqDate"), 0, 10)) #reqDate chi lấy
+ngày tháng năm
+.groupBy("req_date")
+.agg(f.sum("userChargeAmount").alias("total_amount_payment"))
+.show())
+
+Tổng hợp tổng số tiền giao dịch theo từng ngày từ data tpe_payment
+
+AppID not payment
+
+appid_not_payment = (df_appid
+.where(col("app_type") == "Not Payment")
+.select(f.col("appid").alias("appID"))
+.distinct())
+
+ATO blacklist
+
+df_post_mortem_blacklist_ato =
+(ef.extract_dataframe("risk.rda.wallet.post_mortem_ato.post_mortem_ato_blacklist"))
+
+Ghi nhận tất cả giao dịch được label ATO
+
+ATO PoM
+
+df_pom = (df_post_mortem_blacklist_ato
+.where((f.col("reqDate") >= start_of_month_pom.strftime("%Y-%m-%d"))
+& (f.col("reqDate") <= current_date.strftime("%Y-%m-%d")))
+.show())
+
+Danh sách giao dịch bị nghi ngờ ATO trong tháng [...]
+
+Case history
+
+df_risk_intelligence_notes = ef.extract_dataframe("risk_warehouse.risk_intelligence_notes")
+
+Data log case của RPO trên risk intelligence
+
+ZPA FE log
+
+zalopay.encrypt.consumer_success.user_action.event_log
+
+user profile
+
+risk.rda.fep.fundamental.dim_user.um_profile
+zalopay.encrypt.um.umuserprofile | Dataset
+
+KYC level
+
+risk.rda.fep.fundamental.dim_user.kyc_profile
+
+Login
+
+zalopay.encrypt.um.wallet_eventtracking_loginlog
+
+Click here to expand...
+Click outside code block:
+- Press A to create new block code before current block code
+- Press B to create new block code before current block code
+- Press X to delete the current block code
+- Press 1 to change the block code to Big heading
+- Press 2 to change the block code to Medium heading
+Shift + Enter: make the code run
+Press Tab while you are writing in the middle. It can help you to finish the code quicker
+
+Filter reqDate trong start_of_month_p
+đến current_date, format YYYY-MM-D
+
+Latest status của user sẽ bị overwrite
+có status mới
+
+Shift Tab to show instruction
+
+References:
+TPV Prep Data - ZLP Data Services - Confluence
+ATO Dashboard - Risk Management Team - Confluence
+
+Post-mortem (POM)
+
+df_trans_tpe = ef.extract_dataframe('risk.rda.wallet.info_transaction_for_ATO')
+Feature
+
+Definition
+
+3rd_to_current_reqDate_24h
+
+Timerange from the 3rd transactions before to the current transactions
+
+Formula
+
+No Of Transactions
+
+Time
+
+3rd
+
+5:10:00 AM
+
+0
+
+2nd
+
+5:10:30 AM
+
+30
+
+1st
+
+5:11:00 AM
+
+30
+
+Happening transaction
+
+5:11:30 AM
+
+4
+
+Timerange from the 3rd transactions before to the current transactions
+
+90
+
+ATO loss
+
+transType isin (1, 4) AND
+appID NOT in (454, 452, 1402) AND
+transStatus == 1 AND
+label == 'ATO'
+
+ATO Ratio
+balance_not_enough
+
+total loss / total fund-out
+count number of txns by user_device encountering
+
+appID == 454
+& (pcmReturnCode = -5025
+& transStatus = -217 || transStatus == -63)
+
+count_fund_in_24h
+
+count number of txns by user_device funding in to wallet.
+
+appID = 454
+
+count_fund_in_24h_not_auto_debit
+
+count number of txns by user_device funding in to wallet.
+
+appID = 454 AND productCode != 'TU006'
+
+KYC
+
+KYC/non KYC
+
+total_fund_out_tpe
+
+Sum total charge amount on TPE
+
+total fund-out =
+
+→ tổng tiền fund-out trên toàn TPE
+
+transType isin (1, 4) AND
+appID NOT in (454, 452, 1402) AND
+transStatus == 1
+
+Source of fund
+Low risk: total balance có thể chắc chắn tính được <= 200K
+High risk: total balance có thể chắc chắn tính được > 200K hoặc có balance không chắc chắn
+Nếu xuất hiện thêm balance mới thì đều tính là unknown, cần Risk review
+PmcID
+
+Description
+
+Có thể chắc chắn tính được
+
+Khi nào nguồn tiền = 0
+
+38 (ZALOPAYWALLET)
+
+Payment with wallet balance
+
+Yes
+
+Số dư ví = 0
+
+37 (BANK ACCOUNT - TKNH)
+39 (ATM - API - Thẻ nội địa)
+
+Payment with the bank
+in http://gateway.zalopay.vn/ or APP/ZPI
+
+Thẻ nội địa: do NHVN phát hành, trên thẻ ko có
+Visa, Mastercard, JCB, Amex
+
+No
+
+No bank linkage
+
+36 (CREDITCARD)
+
+Payment with Int'l Credit card
+
+Thẻ tín dụng quốc tế: do NHVN phát hành, trên
+thẻ có Visa, Mastercard, JCB, Amex
+
+No
+
+No bank linkage
+
+41 (DEBIT_CARD)
+
+Payment with Int'l Debit card
+
+Thẻ ghi nợ quốc tế: do NHVN phát hành, trên thẻ
+có Visa, Mastercard, JCB, Amex (khác với thẻ nội
+địa là có thể thanh toán ở nước ngoài)
+
+No
+
+No bank linkage
+
+43 (NAPASQR_ACQUIRER)
+
+Not available
+
+40 (RPE)
+
+The outcome of a temporary account of Lixi in
+ZaloPay (Retire)
+
+42 (MTE)
+
+The outcome of a temporary account of Lixi/11 transfer in ZaloPay on Zalo (ZPI) (Retire)
+
+44 (MMF)
+
+Payment with TKTL
+
+Yes
+
+Số dư TKTL = 0 HOẶC
+Chưa mở TKTL
+
+45 (PLT)
+
+Pay Later - Ví trả sau
+
+46 (EMVCO)
+
+EMVCO - Quét thanh toán bằng ứng dụng
+bên thứ 3
+
+No
+
+Chưa mở TKTS HOẶC
+Bad user (không trả dư nợ)
+
+Dùng ứng dụng khác ZLP để quét QR đa năng
+của ZLP
+Ví dụ: bank app, VĐT khác quét
+
+PmcID
+
+Description
+
+47 (STOCK)
+
+Số dư trên tài khoản Trading Stock (Pending)
+
+48 (UPI)
+
+UPI - Mã QR thanh toán quốc tế
+
+Có thể chắc chắn tính được
+
+Khi nào nguồn tiền = 0
+Không có TK chứng khoán
+
+Mã ZLP kết hợp với UPI (TQ)
+Ví dụ: người TQ đến VN sẽ dùng Wechat (có liên
+kết với UPI), sẽ dùng Wechat để quét mã UPI này
+thanh toán cho merchant
+
+50 (FIX DEPOSIT)
+
+Tài khoản tiền gửi tiết kiệm có kỳ hạn
+
+Yes
+
+Số dư TKTK= 0 HOẶC
+Chưa mở TKTK
+
+51 (In-app Installment)
+
+CIMB In-app Installment
+
+Yes
+
+Chưa mở Installment HOẶC
+Bad user (không trả dư nợ)
+
+Product Code
+Hiện tại, định nghĩa product code là đại diện cho một sản phẩm Zalopay cung cấp với tính chất business độc lập
+
+Payment Platform - Product Design
+AppIDs
+External AppIDs: Danh sách AppIDs (các AppIDs ZLP đang cung cấp dịch vụ Thu hộ - Acquiring)
+Internal AppIDs: Các AppID nội bộ, không được quản lý bởi MEP
+AppID
+
+Description
+
+Note
+
+2
+
+Withdraw
+
+Retired
+
+452
+
+Withdraw
+
+888
+
+Withdraw then Open FD
+
+10000
+
+Transfer ZPI
+
+450
+
+Transfer P2P
+
+241
+
+Transfer IBFT
+
+454
+
+Top-up (Nạp tiền vào ví)
+
+1
+
+Top-up, Regain, Cashback,...
+
+1229
+
+Recycle Zalo
+
+1386
+
+Offline Cashin
+
+6
+
+Lixi ZaloPay
+
+1228
+
+Disbursement V1
+
+3253
+
+Disbursement for QR Transfer
+
+45
+
+Credit Card Repayment
+
+186
+
+Break FD then Topup
+
+4368
+
+Balance liquidation
+
+Retired
+
+Operation app
+
+Not live
+
+Implementing
+
+TransType
+→ Transaction type: dùng để phân biệt các loại giao dịch được xử lý hệ thống
+Trans type
+
+Description
+
+0 (NONE)
+
+None
+
+1 (B2C)
+
+Payment / Topup in app
+
+2 (TOPUP_WALLET)
+
+Top up to wallet from Bank Platform
+
+3 (MAP_CARD)
+
+Micro charge when card mapping
+
+4 (TRANSFER_MONEY_TKZALOPAY)
+
+P2P transfer
+
+5 (WITHDRAW)
+
+Withdraw back to the bank
+
+6 (RECEIVE_RED_PACKAGE)
+
+Receive red package in ZaloPay
+
+1
+
+7 (REFUND_RED_PACKAGE)
+
+Fund Back red package in ZaloPay
+
+1
+
+8 (SETTLEMENT)
+
+Lệnh thanh toán: ZaloPay thanh toán cho merchant
+
+9 (GIVE_MONEY)
+
+Give user money when setup the Zalopay app or add money for the user.
+
+10 (REGAIN_MONEY)
+
+Regain user money when the user received wrong money transfer
+
+11 (CASHIN_MERCHANT_TRANSFER)
+
+Fund-in (1)
+
+Fund-out (2)
+
+2
+1
+2
+1
+2
+
+1
+2
+1
+
+12 (ZPBANK_TOPUP)
+
+Top-up: Bank call ZaloPay
+
+1
+
+14 (QRCODE_PAY)
+
+Pay by QRCode
+
+15 (ZPGW_B2C)
+
+Pay through gateway.zalopay.com.vn
+
+16 (ZPGW_TOPUP_WALLET)
+
+Topup user balance through gateway.zalopay.com.vn (old)
+
+17 (FA_COLLECT_MONEY)
+
+Collect money to FA wallet
+
+18 (RECEIVE_MTE_PACKAGE)
+
+Receive money from the internal(temporary) account in ZPI
+
+1
+
+19 (REFUND_MTE_PACKAGE)
+
+Fund back money from the internal(temporary) account in ZPI
+
+1
+
+2
+2
+1
+2
+
+zps system and sofaction
+Description
+zpsystem
+
+ZP_WALLET
+
+Giao dịch được thực hiện qua Ứng dụng, bao gồm ZPA, ZPI, ZMP
+
+→ Phân biệt kênh thanh toán khi user
+thực hiện giao dịch
+
+ZP_GATEWAY
+
+Giao dịch được thực hiện qua Cổng thanh toán
+
+sofaction
+
+X_PAY
+
+User thanh toán qua Apple Pay
+
+→ Phân biệt các phương thức thanh
+toán của user qua Cashier
+
+CARD_ON_FILE
+
+User thanh toán qua Công cụ lưu thẻ Quốc tế (Card on File)
+
+Pmc ID
+→ Payment channel ID: dùng để phân biệt các nguồn tiền thanh toán của User
+PmcID
+
+Description
+
+38 (ZALOPAYWALLET)
+
+Payment with wallet balance
+
+37 (BANK ACCOUNT)
+39 (ATM-API)
+
+Payment with the bank in http://gateway.zalopay.vn/ or APP/ZPI
+
+36 (CREDITCARD)
+
+Payment with Int'l Credit card
+
+41 (DEBIT_CARD)
+
+Payment with Int'l Debit card
+
+43 (NAPASQR_ACQUIRER)
+
+Not available
+
+40 (RPE)
+
+The outcome of a temporary account of Lixi in ZaloPay (Retire)
+
+42 (MTE)
+
+The outcome of a temporary account of Lixi/1-1 transfer in ZaloPay on Zalo
+(ZPI) (Retire)
+
+44 (MMF)
+
+Payment with TKTL
+
+45 (PLT)
+
+Pay Later - Ví trả sau
+
+46 (EMVCO)
+
+EMVCO - Quét thanh toán bằng ứng dụng bên thứ 3
+
+47 (STOCK)
+
+Số dư trên tài khoản Trading Stock
+
+48 (UPI)
+
+UPI - Mã QR thanh toán quốc tế
+
+50 (FIX DEPOSIT)
+
+Tài khoản tiền gửi tiết kiệm có kỳ hạn
+
+51 (In-app Installment)
+
+CIMB In-app Installment
+
+PMC Return code
+PMC Return code
+
+Description
+
+-3055
+
+BC không nhận được request verify_otp từ TPE trong 15p
+
+-5084
+
+Giao dịch chưa xác nhận OTP từ bank
+
+-10335
+
+Giao dịch bị hủy bởi người dùng
+
+-5084
+
+Giao dịch chưa xác nhận OTP từ phía ngân hàng
+
+-10341
+
+Thẻ đã được liên kết trên tài khoản khác
+
+-5025
+
+Tài khoản khách hàng không đủ số dư
+
+-5031
+
+Thẻ hết hạn sử dụng
+
+-5074
+
+Ngân hàng không chấp nhận giao dịch
+
+-5035
+
+Số CVV không đúng
+
+-5077
+
+Thẻ không hoạt động hoặc NHPHT chặn
+
+-3155
+
+Hệ thống không nhận được yêu cầu xác nhận.
+
+-5001
+
+Không thể kết nối tới ngân hàng.
+
+-5007
+
+Lỗi hệ thống ngân hàng
+
+-5009
+
+Giao dịch không thành công
+
+Refund
+→ Based on pmcID to config refund rule.
+With bank ATM/Account and condition 5 will be based on the Appid of each payment service.
+pmcID
+
+Condition (top-down priority)
+
+Refund to
+
+36 (CREDITCARD)
+
+1. All cases
+
+BANK
+
+41 (DEBIT_CARD)
+
+1. bankconnectorcode = “ZPVCBC”
+
+WALLET
+
+2. The others cases
+
+BANK
+
+1. zpSystem = 2:“ZP_GATEWAY”
+
+BANK
+
+2. transType = 15:“ZPGW_B2C”
+
+BANK
+
+3. bankconnectorcode = “ZPNAPAS3”
+hoặc “ZPHDB”
+
+BANK
+
+4. bankconnectorcode = “ZPVCBC”
+
+WALLET
+
+5. Depend on the payment app's config
+
+WALLET/BANK
+
+6. The other cases
+
+BANK
+
+1. All cases
+
+WALLET
+
+37 (BANK ACCOUNT)
+39 (ATM-API)
+
+38 (ZALOPAYWALLET)
+
+Note
+
+Mostly wallet
+
+43 (NAPASQR_ACQUIRER)
+
+1. TransType = 1:“B2C”
+
+WALLET
+
+2.TransType = 15:“ZPGW_B2C”
+
+BANK
+
+Login
+Các flow login đang có:
+Phone pin
+Zalo oauth: nghĩa là ZaloID bind UserID
+
+1
+
+2
+
+flow
+
+platform
+
+Description
+
+zalo
+
+H5
+
+Login trên app Zalo (ZPI)
+
+ZMP
+
+Login trên app Zalo (ZPI)
+
+NATIVE
+
+Login trên app ZLP bằng zalo
+
+Zalo này là Zalo liên kết với ví
+
+H5
+
+Login trên web bằng phone number
+
+PIN + OTP
+
+NATIVE
+
+Login trên app ZLP bằng phone number
+(ZPA)
+
+PIN + OTP
+
+phone
+
+Verification method
+
+Note
+
+Login trên ZMP (ZPI) không có device, likely là device ==
+device login by H5
+
+Risk - PE mapping
+Mapping (Error code)
+→ Decision mapping
+RISK Decision code
+
+RISK Info code
+
+PIC
+
+Description
+
+Transaction Status
+
+Callout Message
+
+-1
+
+000000 - 099999
+
+-
+
+RMS_REJECT_A
+
+-3xx
+
+RMS_CHALLENGE_A
+
+-3xx
+
+Trả về theo 'Info
+Message' trong
+response
+
+RMS_REJECT_PROMOTION_ABUSE
+
+-333
+
+0
+-1
+
+100000 - 199999
+
+PhiNDT
+
+RMS_CHALLENGE_PROMOTION_ABUSE
+
+-332
+
+200000 - 299999
+
+TramCTB2
+
+RMS_REJECT_WALLET
+
+-348
+
+NhuTN
+
+RMS_CHALLENGE_WALLET
+
+-356
+
+DuyTD3
+
+RMS_REJECT_FRAUD
+
+-357
+
+RMS_CHALLENGE_FRAUD
+
+-354
+
+RMS_REJECT_MERCHANT
+
+-3xx
+
+RMS_CHALLENGE_MERCHANT
+
+-3xx
+
+RMS_REJECT_KYC
+
+-359
+
+RMS_CHALLENGE_KYC
+
+-3xx
+
+RMS_REJECT_CREDIT
+
+-358
+
+RMS_CHALLENGE_CREDIT
+
+-363
+
+RMS_REJECT_ON_BEHALF
+
+-3xx
+
+RMS_CHALLENGE_ON_BEHALF
+
+-3xx
+
+RMS_REJECT_B
+
+-3xx
+
+RMS_CHALLENGE_B
+
+-3xx
+
+RMS_REJECT_C
+
+-3xx
+
+RMS_CHALLENGE_C
+
+-3xx
+
+RMS_UNKNOWN
+
+-244
+
+0
+-1
+0
+-1
+
+300000 - 399999
+
+0
+-1
+
+400000 - 499999
+
+VyNT10
+
+0
+-1
+
+500000 - 599999
+
+TrungNC
+
+0
+-1
+
+600000 - 699999
+
+TrungNC
+
+700000 - 799999
+
+-
+
+0
+-1
+0
+-1
+
+800000 - 899999
+
+-
+
+0
+-1
+
+900000 - 999999
+
+-
+
+0
+Others (Not 1)
+
+Others
+
+-
+
+Authen type
+Risk level
+
+Authen type
+
+Action Code
+
+Note
+
+1
+
+Captcha
+
+10
+
+2
+
+PIN
+
+20
+
+Default đang gọi mọi giao dịch -> Có thể
+optimize để tăng UX nhiều trong tương lai,
+align với practice của alipay cũng có làm.
+First step: Đã challenge Face Authen ->
+Skip PIN
+
+3
+
+Phone Biometrics
+
+30
+
+Cần Documents
+
+4
+
+ZNS/ ZMS OTP
+
+4
+
+SMS OTP
+
+40
+
+5
+
+SMART_OTP
+
+50
+
+6
+
+KYC
+
+60
+
+7
+
+Passive face authen với hình KYC (chưa NFC)
+
+70
+
+8
+
+Active face authen với hình KYC (chưa NFC)
+
+80
+
+9
+
+Quét NFC
+
+90
+
+Risk
+
+Có thể bị loss nếu user bị mất Zalo
+
+Chèn thông tin KYC
+Định danh hộ
+Trong trường hợp, hình KYC đã được
+verify với BCA thì vẫn sẽ check ưu tiên
+check với hình này
+Yêu cầu user quét NFC thành công, NFC
+match với thông tin KYC
+
+Có thể replicate 100% sóng NFC (thông tin NFC) ra một
+thiết bị khác, phát lại để quét NFC thành công
+Sẽ tốn nhiều effort, phải là expertise trong lĩnh vực
+này mới có thể làm được
+
+Risk level
+
+Authen type
+
+Action Code
+
+Note
+
+10
+
+Passive face authen với hình KYC đã check với NFC
+
+100
+
+11
+
+Active face authen với hình KYC đã check với NFC
+
+110
+
+Trong trường hợp, hình KYC đã được
+verify với BCA thì vẫn sẽ check ưu tiên
+check với hình này
+
+12
+
+Check thông tin NFC với BCA
+
+120
+
+13
+
+Passive face authen với hình KYC đã verify với NFC
+và NFC đã check với BCA
+
+130
+
+14
+
+Active face authen với hình KYC đã verify với NFC và
+NFC đã check với BCA
+
+140
+
+Risk
+
+Với các thông tin NFC được replicate 100% từ thông tin
+thật thì check với BCA vẫn sẽ thành công
+
+→ Logic
+Logic (OR)
+
+Condition
+
+1
+
+AND
+
+2
+
+Feature
+
+AND
+
+Condition
+
+Trusted device
+
+Yes
+
+PIN OR face authen by True ID (not phone's
+facial authen)
+
+Yes
+
+user confirmation
+
+Yes
+
+SMS OTP for first device SmartOTP register
+
+Yes
+
+SMS OTP for first device payment transaction
+
+Yes
+
+PIN OR face authen by True ID (not phone's
+facial authen)
+
+Yes
+
+user confirmation
+
+Yes
+
+Registration
+
+→ SmartOTP có thể thay thế cho SMS OTP: thông tư 2345
+
+Trusted device
+→ Logic
+Feature
+
+Condition
+
+first user_device transactions OR last user_device transactions
+
+> 7 days
+
+first user_device transactions OR last user_device transactions
+
+< 365 days
+
+total user_device fundout amt
+(No time limit if possible, take the widest time range available)
+
+> 100K
+
+device verified the OTP successfully in one of the following flows
+
+registration, login, or PIN change/reset > 7 days AND < 365 days
+
+device is not in ato_blacklist
+
+1
+
+→ RPI | RCS | Wallet fraud check - Risk Integration & Support - Confluence
+
+No labels
+
+
