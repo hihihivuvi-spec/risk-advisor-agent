@@ -1,1 +1,19 @@
-RiskMind là trợ lý AI dành cho các thành viên Risk Team và các bên liên quan cần tra cứu nhanh thông tin về quy trình, chính sách, dữ liệu và nghiệp vụ rủi ro. Agent giúp giải quyết vấn đề thông tin Risk bị phân tán, khó tìm kiếm và mất thời gian xác minh bằng cách tiếp nhận câu hỏi tự nhiên, tìm kiếm trong nguồn tri thức liên quan và tổng hợp câu trả lời rõ ràng, đúng ngữ cảnh. Nhờ đó, RiskMind giúp người dùng tiết kiệm thời gian, giảm phụ thuộc vào trao đổi thủ công và nâng cao hiệu quả ra quyết định trong các hoạt động quản trị rủi ro
+Problem
+
+Risk knowledge is often scattered across multiple documents, policies, and communication channels, making it time-consuming for users to find accurate information and make informed decisions.
+
+Users
+
+Stakeholders such as Business Development, Customer Service, Operations, and Compliance teams who need quick access to risk-related knowledge.
+
+Solution
+
+RiskMind is an AI-powered assistant that answers risk-related questions using natural language. It retrieves information from trusted knowledge sources and provides clear, context-aware responses, helping users save time, improve consistency, and make faster decisions.
+
+How to Run
+
+Open the RiskMind agent in OpenClaw, connect the configured knowledge base, and start asking questions in natural language.
+
+What to Customize
+
+Organizations can customize the knowledge base by adding or updating risk policies, playbooks, SOPs, guidelines, and FAQs to ensure the agent reflects our latest risk practices and requirements.
